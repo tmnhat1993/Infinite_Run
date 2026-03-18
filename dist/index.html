@@ -2,11 +2,14 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <title>HYPER RUN</title>
     
-    <script type="module" crossorigin src="/Infinite_Run/dist/assets/index.a82d9217.js"></script>
-    <link rel="stylesheet" href="/Infinite_Run/dist/assets/index.2fb240cd.css">
+    <script type="module" crossorigin src="/Infinite_Run/dist/assets/index.fcc03e4c.js"></script>
+    <link rel="stylesheet" href="/Infinite_Run/dist/assets/index.1c1376ec.css">
   </head>
   <body>
     <canvas id="canvas"></canvas>
@@ -55,7 +58,23 @@
           <div class="ctrl-keys">S / ↓ / Swipe ↓</div>
         </div>
       </div>
-      <button class="btn-start" id="btn-start">BẮT ĐẦU</button>
+      <div class="start-actions">
+        <button class="btn-start" id="btn-start">BẮT ĐẦU</button>
+        <button class="btn-start btn-secondary" id="btn-start-restart">
+          CHƠI LẠI TỪ ĐẦU
+        </button>
+      </div>
+
+      <div class="debug-toggle">
+        <label class="debug-switch">
+          <input id="debug-mode-toggle" type="checkbox" />
+          <span class="debug-slider"></span>
+        </label>
+        <div class="debug-toggle-text">
+          <div class="debug-toggle-title">DEBUG MODE</div>
+          <div class="debug-toggle-sub">Bật để chỉnh độ khó & không game over</div>
+        </div>
+      </div>
     </div>
 
     <!-- End Screen -->
