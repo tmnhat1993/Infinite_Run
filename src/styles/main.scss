@@ -556,3 +556,125 @@ body {
   animation: shake 0.55s ease-out;
 }
 
+/* ── Debug panel (difficulty tuning) ── */
+#debug-panel {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  width: min(420px, calc(100vw - 24px));
+  background: rgba(0, 0, 0, 0.78);
+  border: 1px solid rgba(0, 255, 255, 0.35);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 12px 12px 10px;
+  color: #dff;
+  pointer-events: all;
+  backdrop-filter: blur(8px);
+}
+
+#debug-panel.hidden {
+  display: none;
+}
+
+#debug-panel .dbg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+#debug-panel .dbg-title {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #0ff;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+#debug-panel .dbg-actions {
+  display: flex;
+  gap: 8px;
+}
+
+#debug-panel .dbg-btn {
+  border: 1px solid rgba(0, 255, 255, 0.35);
+  background: rgba(0, 255, 255, 0.06);
+  color: #bff;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+#debug-panel .dbg-btn:hover {
+  background: rgba(0, 255, 255, 0.12);
+}
+
+#debug-panel .dbg-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 58px;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+#debug-panel label {
+  font-size: 11px;
+  color: rgba(223, 255, 255, 0.85);
+}
+
+#debug-panel input[type="range"] {
+  width: 100%;
+}
+
+#debug-panel output {
+  font-size: 11px;
+  text-align: right;
+  color: #fff;
+  opacity: 0.9;
+}
+
+#debug-panel .dbg-sep {
+  height: 1px;
+  background: rgba(0, 255, 255, 0.18);
+  margin: 8px 0 6px;
+}
+
+#debug-panel .dbg-live {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  display: grid;
+  gap: 6px;
+}
+
+#debug-panel .dbg-live > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+#debug-panel .dbg-hint {
+  margin-top: 10px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.55);
+  user-select: none;
+}
+
+#debug-panel kbd {
+  font-family: inherit;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+

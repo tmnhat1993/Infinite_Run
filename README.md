@@ -20,6 +20,18 @@ npm run build
 npm run preview
 ```
 
+## Deploy lên GitHub Pages (đúng domain/path bạn đưa)
+
+Domain target của bạn là `https://tmnhat1993.github.io/Infinite_Run/dist/` nên project đã được cấu hình `base` là `/Infinite_Run/dist/` trong `vite.config.js`.
+
+- Chạy build:
+
+```bash
+npm run build
+```
+
+- Upload/push toàn bộ thư mục `dist/` lên repo GitHub sao cho khi mở URL trên, file `dist/index.html` và `dist/assets/*` có thể được truy cập đúng.
+
 ## Cấu trúc thư mục
 
 - `index.html`: chỉ còn markup + load entry `src/main.js`

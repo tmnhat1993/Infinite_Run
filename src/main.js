@@ -1,15 +1,27 @@
 import "./styles/main.scss";
 import * as THREE from "three";
 
+const DEBUG_QUERY_PARAM = "debug";
+const DEBUG_STORAGE_KEY = "hyper-run:difficulty";
+
 // ─── State ───────────────────────────────────────────────────────────────────
 let gameState = "start"; // start | play | end
 let score = 0,
   hearts = 3;
-let baseSpeed = 12,
-  speed = baseSpeed;
-const MAX_SPEED = 38;
-const SPEED_RAMP_TIME = 180; // seconds
+const difficulty = loadDifficulty({
+  baseSpeed: 12,
+  maxSpeed: 38,
+  rampTimeSec: 180,
+  obstacleIntervalMaxSec: 2.2,
+  obstacleIntervalMinSec: 0.9,
+  obstacleIntervalDropSec: 1.3,
+});
+
+let baseSpeed = difficulty.baseSpeed;
+let speed = baseSpeed;
 let elapsed = 0;
+
+initDebugPanel();
 
 // ─── Scene setup ─────────────────────────────────────────────────────────────
 const canvas = document.getElementById("canvas");
@@ -57,6 +69,173 @@ scene.add(pointL1);
 const pointL2 = new THREE.PointLight(0xff00ff, 2, 25);
 pointL2.position.set(2, 5, 0);
 scene.add(pointL2);
+
+function loadDifficulty(defaults) {
+  try {
+    const raw = localStorage.getItem(DEBUG_STORAGE_KEY);
+    if (!raw) return { ...defaults };
+    const parsed = JSON.parse(raw);
+    return { ...defaults, ...parsed };
+  } catch {
+    return { ...defaults };
+  }
+}
+
+function saveDifficulty() {
+  try {
+    localStorage.setItem(DEBUG_STORAGE_KEY, JSON.stringify(difficulty));
+  } catch {
+    // ignore
+  }
+}
+
+function getObstacleIntervalSec() {
+  const ratio =
+    (speed - difficulty.baseSpeed) / (difficulty.maxSpeed - difficulty.baseSpeed);
+  const r = Number.isFinite(ratio) ? Math.max(0, Math.min(ratio, 1)) : 0;
+  return Math.max(
+    difficulty.obstacleIntervalMinSec,
+    difficulty.obstacleIntervalMaxSec - r * difficulty.obstacleIntervalDropSec,
+  );
+}
+
+function initDebugPanel() {
+  const qs = new URLSearchParams(window.location.search);
+  // Keep debug hidden by default on deploy.
+  // Only show when explicitly enabled via query param (?debug=1).
+  const shouldShow = qs.get(DEBUG_QUERY_PARAM) === "1";
+
+  const panel = document.createElement("div");
+  panel.id = "debug-panel";
+  panel.classList.toggle("hidden", !shouldShow);
+  panel.innerHTML = `
+    <div class="dbg-header">
+      <div class="dbg-title">DEBUG • DIFFICULTY</div>
+      <div class="dbg-actions">
+        <button type="button" class="dbg-btn" data-action="reset">Reset</button>
+        <button type="button" class="dbg-btn" data-action="close">Close</button>
+      </div>
+    </div>
+
+    <div class="dbg-row">
+      <label>Base speed</label>
+      <input data-key="baseSpeed" type="range" min="6" max="24" step="0.5" />
+      <output data-out="baseSpeed"></output>
+    </div>
+    <div class="dbg-row">
+      <label>Max speed</label>
+      <input data-key="maxSpeed" type="range" min="20" max="60" step="1" />
+      <output data-out="maxSpeed"></output>
+    </div>
+    <div class="dbg-row">
+      <label>Ramp time (sec)</label>
+      <input data-key="rampTimeSec" type="range" min="30" max="420" step="5" />
+      <output data-out="rampTimeSec"></output>
+    </div>
+
+    <div class="dbg-sep"></div>
+
+    <div class="dbg-row">
+      <label>Obs interval (max)</label>
+      <input data-key="obstacleIntervalMaxSec" type="range" min="0.8" max="4.0" step="0.05" />
+      <output data-out="obstacleIntervalMaxSec"></output>
+    </div>
+    <div class="dbg-row">
+      <label>Obs interval (min)</label>
+      <input data-key="obstacleIntervalMinSec" type="range" min="0.4" max="2.2" step="0.05" />
+      <output data-out="obstacleIntervalMinSec"></output>
+    </div>
+    <div class="dbg-row">
+      <label>Obs drop (sec)</label>
+      <input data-key="obstacleIntervalDropSec" type="range" min="0.0" max="2.5" step="0.05" />
+      <output data-out="obstacleIntervalDropSec"></output>
+    </div>
+
+    <div class="dbg-live">
+      <div><span>Current speed</span><span data-live="speed"></span></div>
+      <div><span>Speed ratio</span><span data-live="ratio"></span></div>
+      <div><span>Obstacle interval</span><span data-live="obs"></span></div>
+    </div>
+
+    <div class="dbg-hint">Toggle: press <kbd>\`</kbd> • or add <code>?debug=1</code></div>
+  `;
+  document.body.appendChild(panel);
+
+  const bind = () => {
+    panel.querySelectorAll("input[data-key]").forEach((el) => {
+      const key = el.dataset.key;
+      el.value = String(difficulty[key] ?? "");
+      const out = panel.querySelector(`output[data-out="${key}"]`);
+      if (out) out.textContent = String(difficulty[key]);
+      el.addEventListener("input", () => {
+        difficulty[key] = Number(el.value);
+        if (key === "baseSpeed") baseSpeed = difficulty.baseSpeed;
+        if (key === "maxSpeed") difficulty.maxSpeed = Math.max(difficulty.maxSpeed, difficulty.baseSpeed + 1);
+        if (key === "obstacleIntervalMinSec")
+          difficulty.obstacleIntervalMinSec = Math.min(
+            difficulty.obstacleIntervalMinSec,
+            difficulty.obstacleIntervalMaxSec,
+          );
+        if (key === "obstacleIntervalMaxSec")
+          difficulty.obstacleIntervalMaxSec = Math.max(
+            difficulty.obstacleIntervalMaxSec,
+            difficulty.obstacleIntervalMinSec,
+          );
+        if (out) out.textContent = String(difficulty[key]);
+        saveDifficulty();
+      });
+    });
+  };
+
+  bind();
+
+  panel.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const action = btn.dataset.action;
+    if (action === "close") {
+      panel.classList.add("hidden");
+    }
+    if (action === "reset") {
+      localStorage.removeItem(DEBUG_STORAGE_KEY);
+      const fresh = loadDifficulty({
+        baseSpeed: 12,
+        maxSpeed: 38,
+        rampTimeSec: 180,
+        obstacleIntervalMaxSec: 2.2,
+        obstacleIntervalMinSec: 0.9,
+        obstacleIntervalDropSec: 1.3,
+      });
+      Object.assign(difficulty, fresh);
+      baseSpeed = difficulty.baseSpeed;
+      bind();
+      saveDifficulty();
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.code !== "Backquote") return;
+    const hidden = panel.classList.toggle("hidden");
+    if (!shouldShow && !hidden) {
+      // If debug wasn't enabled via query param, keep it hidden.
+      panel.classList.add("hidden");
+    }
+  });
+
+  const updateLive = () => {
+    const ratio =
+      (speed - difficulty.baseSpeed) / (difficulty.maxSpeed - difficulty.baseSpeed);
+    const r = Number.isFinite(ratio) ? Math.max(0, Math.min(ratio, 1)) : 0;
+    const liveSpeed = panel.querySelector('[data-live="speed"]');
+    const liveRatio = panel.querySelector('[data-live="ratio"]');
+    const liveObs = panel.querySelector('[data-live="obs"]');
+    if (liveSpeed) liveSpeed.textContent = speed.toFixed(2);
+    if (liveRatio) liveRatio.textContent = r.toFixed(3);
+    if (liveObs) liveObs.textContent = `${getObstacleIntervalSec().toFixed(2)}s`;
+    requestAnimationFrame(updateLive);
+  };
+  requestAnimationFrame(updateLive);
+}
 
 // ─── Road ─────────────────────────────────────────────────────────────────────
 const LANE_X = [-1.6, 1.6];
@@ -198,7 +377,7 @@ const fireMats = [
   new THREE.MeshBasicMaterial({ color: 0xffcc00, transparent: true }),
   new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true }),
 ];
-let speedRatio = 0; // 0..1 from baseSpeed to MAX_SPEED
+let speedRatio = 0; // 0..1 from baseSpeed to maxSpeed
 let wasMaxSpeed = false;
 
 function spawnFireParticle() {
@@ -257,7 +436,7 @@ function updateFireParticles(dt) {
 // ─── Obstacles ────────────────────────────────────────────────────────────────
 const obstacles = [];
 let obstacleTimer = 0;
-let obstacleInterval = 2.2;
+let obstacleInterval = difficulty.obstacleIntervalMaxSec;
 
 const OBS_TYPES = [
   // Tường chắn — cao từ đất lên tận trên, KHÔNG thể nhảy qua (h=3.5 bao phủ toàn bộ chiều cao nhảy)
@@ -512,10 +691,8 @@ function initHUD() {
 function updateHUD() {
   if (scoreEl) scoreEl.textContent = Math.floor(score);
   if (speedFill) {
-    const pct = Math.min(
-      ((speed - baseSpeed) / (MAX_SPEED - baseSpeed)) * 100,
-      100,
-    );
+    const denom = difficulty.maxSpeed - baseSpeed;
+    const pct = Math.min(((speed - baseSpeed) / (denom || 1)) * 100, 100);
     speedFill.style.width = pct + "%";
   }
 }
@@ -535,6 +712,7 @@ function startGame() {
   score = 0;
   hearts = 3;
   elapsed = 0;
+  baseSpeed = difficulty.baseSpeed;
   speed = baseSpeed;
   playerLane = 0;
   playerTargetX = LANE_X[0];
@@ -560,7 +738,7 @@ function startGame() {
   document.getElementById("max-vignette").classList.remove("active");
   document.getElementById("max-badge").classList.remove("show");
   obstacleTimer = 0;
-  obstacleInterval = 2.2;
+  obstacleInterval = difficulty.obstacleIntervalMaxSec;
   document.getElementById("start-screen").classList.add("hidden");
   document.getElementById("end-screen").classList.add("hidden");
   initHUD();
@@ -612,9 +790,9 @@ function update(dt) {
   elapsed += dt;
 
   // Speed ramp
-  const t = Math.min(elapsed / SPEED_RAMP_TIME, 1);
-  speed = baseSpeed + (MAX_SPEED - baseSpeed) * (t * t);
-  speedRatio = (speed - baseSpeed) / (MAX_SPEED - baseSpeed);
+  const t = Math.min(elapsed / difficulty.rampTimeSec, 1);
+  speed = baseSpeed + (difficulty.maxSpeed - baseSpeed) * (t * t);
+  speedRatio = (speed - baseSpeed) / (difficulty.maxSpeed - baseSpeed);
 
   // Max speed FX toggle
   const isMaxNow = speedRatio >= 0.99;
@@ -666,10 +844,7 @@ function update(dt) {
   updateHUD();
 
   // Obstacle interval shrinks with speed
-  obstacleInterval = Math.max(
-    0.9,
-    2.2 - ((speed - baseSpeed) / (MAX_SPEED - baseSpeed)) * 1.3,
-  );
+  obstacleInterval = getObstacleIntervalSec();
 
   // Spawn obstacles
   obstacleTimer -= dt;
