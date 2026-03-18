@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HYPER RUN</title>
+    
+    <script type="module" crossorigin src="/assets/index.bdb0f72e.js"></script>
+    <link rel="stylesheet" href="/assets/index.762d7324.css">
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <div id="ui">
+      <div id="hud" class="hidden">
+        <div>
+          <div id="score-label">SCORE</div>
+          <div id="score">0</div>
+        </div>
+        <div id="hearts">
+          <span class="heart" id="h1">❤️</span>
+          <span class="heart" id="h2">❤️</span>
+          <span class="heart" id="h3">❤️</span>
+        </div>
+        <div id="speed-bar-wrap">
+          <span id="speed-label">SPD</span>
+          <div id="speed-bar"><div id="speed-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="flash"></div>
+    <div id="max-vignette"></div>
+    <div id="max-badge">⚡ MAX SPEED ⚡</div>
+    <div id="swipe-hint">SWIPE ← → ↑ ↓</div>
+    <div id="state-indicator"></div>
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="screen">
+      <div class="game-title">HYPER RUN</div>
+      <div class="subtitle">INFINITE RUNNER</div>
+      <div class="controls-grid">
+        <div class="ctrl-card">
+          <div class="ctrl-icon">↔️</div>
+          <div class="ctrl-name">ĐỔI LÀN</div>
+          <div class="ctrl-keys">A / D / ← → / Swipe</div>
+        </div>
+        <div class="ctrl-card">
+          <div class="ctrl-icon">⬆️</div>
+          <div class="ctrl-name">NHẢY</div>
+          <div class="ctrl-keys">W / ↑ / SPACE / Swipe ↑</div>
+        </div>
+        <div class="ctrl-card">
+          <div class="ctrl-icon">⬇️</div>
+          <div class="ctrl-name">CÚI</div>
+          <div class="ctrl-keys">S / ↓ / Swipe ↓</div>
+        </div>
+      </div>
+      <button class="btn-start" id="btn-start">BẮT ĐẦU</button>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen" class="screen hidden">
+      <div id="end-inner">
+        <div
+          class="title"
+          id="end-title"
+          style="
+            font-size: 58px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            color: #ff3300;
+            text-shadow: 0 0 20px #ff3300;
+            margin-bottom: 6px;
+          "
+        >
+          GAME OVER
+        </div>
+        <div
+          style="
+            color: #aaa;
+            font-size: 11px;
+            letter-spacing: 4px;
+            margin-bottom: 4px;
+          "
+        >
+          ĐIỂM SỐ CỦA BẠN
+        </div>
+        <div
+          class="final-score"
+          id="final-score"
+          style="
+            font-size: 52px;
+            color: #fff;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+          "
+        >
+          0
+        </div>
+
+        <!-- Name + submit -->
+        <div id="name-wrap">
+          <input
+            id="player-name-input"
+            type="text"
+            maxlength="16"
+            placeholder="TÊN CỦA BẠN"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="btn-submit-score">LƯU</button>
+        </div>
+        <div id="submit-status"></div>
+
+        <!-- Leaderboard -->
+        <div id="leaderboard">
+          <div id="lb-title">🏆 BẢNG XẾP HẠNG</div>
+          <div id="lb-status">Đang tải...</div>
+          <ul id="lb-list"></ul>
+        </div>
+
+        <button class="btn-start" id="btn-restart" style="margin-top: 4px">
+          CHƠI LẠI
+        </button>
+      </div>
+    </div>
+    <div id="explosion-overlay"></div>
+  </body>
+</html>
